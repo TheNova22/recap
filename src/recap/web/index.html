@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta name="recap-csrf" content="__CSRF_TOKEN__">
+    <meta name="recap-demo" content="__RECAP_DEMO__">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e6ece7">
+  <title>Recap · Daily engineering log</title>
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" sizes="any">
+  <script src="/assets/theme.js"></script>
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-identity">
+      <a class="brand" href="/" aria-label="Recap home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span>recap</span>
+      </a>
+      <p class="header-note">A clear record of the work behind your day.</p>
+    </div>
+    <div class="header-actions">
+      <span class="privacy-note"><span class="privacy-dot"></span>Private session</span>
+      <button id="openSettings" class="button button-quiet" type="button">
+        <span aria-hidden="true">⚙</span> Settings
+      </button>
+      <button id="themeToggle" class="button button-quiet theme-toggle" type="button" aria-label="Switch to dark theme">
+        <span id="themeIcon" aria-hidden="true">◐</span><span id="themeLabel">Dark mode</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="intro" aria-labelledby="page-title">
+      <div>
+        <h1 id="page-title">What moved today?</h1>
+        <p class="intro-copy">Gather your work, connect it to Jira, and leave with an update ready to share.</p>
+      </div>
+    </section>
+
+    <section class="collect-panel" aria-labelledby="collect-title">
+      <div class="collect-heading">
+        <div>
+          <h2 id="collect-title">Choose a day</h2>
+          <p id="destination" class="destination"></p>
+        </div>
+        <p id="status" class="status" role="status" aria-live="polite">Choose a date to start your recap.</p>
+      </div>
+      <div class="collect-controls">
+        <div class="field date-field">
+          <label for="day">Work date</label>
+          <input id="day" type="date">
+        </div>
+        <div class="field model-field">
+          <label for="model">AI model</label>
+          <select id="model" aria-describedby="modelHint"></select>
+          <input id="customModel" class="custom-model" type="text" placeholder="Enter model ID" autocomplete="off" hidden>
+          <span id="modelHint" class="visually-hidden">Select a listed model or enter a custom model ID.</span>
+        </div>
+        <div class="collect-actions">
+          <button id="loadModels" class="button button-quiet" type="button">List models</button>
+          <button id="generate" class="button button-primary" type="button">
+            <span class="button-spark" aria-hidden="true">✳</span> Collect work
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="review-section" id="result" hidden aria-labelledby="activity-title">
+      <div class="review-grid">
+        <div class="activity-column">
+          <div class="section-heading">
+            <div>
+              <h2 id="activity-title">Your work, in context</h2>
+            </div>
+            <span class="section-aside"><span id="activityCount"></span>Match each item to its Jira issue</span>
+          </div>
+          <div id="warnings" class="warnings" aria-live="polite"></div>
+          <div id="items" class="activity-list"></div>
+        </div>
+
+        <aside class="daily-sheet" id="dailyPanel" hidden aria-labelledby="daily-title">
+          <div class="sheet-heading">
+            <span class="sheet-stamp" aria-hidden="true">R</span>
+            <div class="sheet-title">
+              <h2 id="daily-title">Daily update</h2>
+            </div>
+            <div class="sheet-format">
+              <label for="dailyFormat">Format</label>
+              <select id="dailyFormat" aria-label="Daily update format">
+                <option value="markdown" selected>Markdown</option>
+                <option value="plain">Plain text</option>
+              </select>
+            </div>
+          </div>
+          <p class="sheet-note">Matched and unmatched work, gathered into one update.</p>
+          <label class="visually-hidden" for="daily">Edit your daily update</label>
+          <textarea id="daily" spellcheck="true" aria-describedby="daily-hint"></textarea>
+          <div class="sheet-footer">
+            <span id="daily-hint">Edit the wording before copying.</span>
+            <button id="copy" class="button button-copy" type="button">Copy update</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="comments-panel" id="commentsPanel" hidden aria-labelledby="comments-title">
+      <div class="section-heading comments-heading">
+        <div>
+          <h2 id="comments-title">Ticket comment drafts</h2>
+        </div>
+        <p class="section-aside">Review the exact text before posting.</p>
+      </div>
+      <div id="comments" class="comment-list"></div>
+    </section>
+
+    <details class="settings-panel">
+      <summary>
+        <span class="settings-icon" aria-hidden="true">⚙</span>
+        <span><strong>Settings</strong><small>Repositories, agents, time zone, and providers</small></span>
+        <span class="summary-chevron" aria-hidden="true"></span>
+      </summary>
+      <div class="settings-content">
+        <p class="settings-explainer">Credentials stay in environment variables. This file only stores your local preferences.</p>
+        <div class="settings-toolbar">
+          <p id="configPath" class="config-path"></p>
+          <div class="settings-mode" role="group" aria-label="Settings editor">
+            <button id="settingsFormMode" class="mode-button" type="button" aria-pressed="true">Form</button>
+            <button id="settingsFileMode" class="mode-button" type="button" aria-pressed="false">TOML</button>
+          </div>
+        </div>
+        <div id="settingsFeedback" class="settings-feedback" role="status" aria-live="polite" hidden></div>
+        <div id="settingsForm" class="settings-form">
+          <div class="settings-grid">
+<section class="settings-group" aria-labelledby="settings-repositories-title">
+<h3 id="settings-repositories-title">Repositories</h3>
+              <label class="setting-field" for="settingRepoRoots">Folders to search</label>
+          <textarea id="settingRepoRoots" rows="1" spellcheck="false" aria-describedby="repoRootsHint"></textarea>
+              <span id="repoRootsHint" class="field-hint">One folder per line. Recap searches recursively.</span>
+              <label class="setting-field" for="settingRepoExcludes">Folders to skip</label>
+              <input id="settingRepoExcludes" type="text" aria-describedby="repoExcludesHint">
+              <span id="repoExcludesHint" class="field-hint">Comma separated names. Hidden folders are skipped automatically.</span>
+</section>
+<section class="settings-group" aria-labelledby="settings-time-jira-title">
+<h3 id="settings-time-jira-title">Time and Jira</h3>
+              <label class="setting-field" for="settingTimezone">Time zone</label>
+              <input id="settingTimezone" type="text" placeholder="Asia/Kolkata" aria-describedby="timezoneHint">
+              <span id="timezoneHint" class="field-hint">Use an IANA name such as Asia/Kolkata, or local.</span>
+              <label class="setting-field" for="settingJiraUrl">Jira site URL</label>
+              <input id="settingJiraUrl" type="url" placeholder="https://example.atlassian.net">
+              <label class="setting-field" for="settingJiraDays">Recent Jira issues to search</label>
+              <input id="settingJiraDays" type="number" min="1" max="365">
+</section>
+<section class="settings-group" aria-labelledby="settings-ai-provider-title">
+<h3 id="settings-ai-provider-title">AI provider</h3>
+              <label class="setting-field" for="settingAIProvider">Provider</label>
+              <select id="settingAIProvider">
+                <option value="openai_responses">OpenAI Responses</option>
+                <option value="chat_completions">Chat Completions</option>
+                <option value="openai_compatible">OpenAI compatible</option>
+              </select>
+              <label class="setting-field" for="settingAIBaseUrl">API base URL</label>
+              <input id="settingAIBaseUrl" type="url" placeholder="https://api.openai.com/v1">
+              <label class="setting-field" for="settingAIModel">Model</label>
+          <input id="settingAIModel" type="text" placeholder="Enter a model ID supported by your endpoint">
+              <label class="setting-field" for="settingAITokens">Maximum output tokens</label>
+              <input id="settingAITokens" type="number" min="16" max="65536">
+</section>
+<section class="settings-group agent-settings" aria-labelledby="settings-agent-sessions-title">
+<h3 id="settings-agent-sessions-title">Agent sessions</h3>
+              <p class="field-hint">Choose which local agent histories to include in daily collection.</p>
+              <label class="agent-option"><input type="checkbox" name="agentSource" value="codex"><span><strong>Codex</strong><small>Local Codex sessions</small></span></label>
+              <label class="agent-option"><input type="checkbox" name="agentSource" value="claude"><span><strong>Claude</strong><small>Claude Code sessions</small></span></label>
+              <label class="agent-option"><input type="checkbox" name="agentSource" value="cursor"><span><strong>Cursor</strong><small>Local Cursor agent transcripts</small></span></label>
+              <label class="setting-field" for="settingCommentTemplate">Jira comment template</label>
+              <select id="settingCommentTemplate"></select>
+              <span class="field-hint">Edit template text and custom values in TOML mode.</span>
+</section>
+          </div>
+        </div>
+        <div id="settingsFile" hidden>
+          <label class="setting-field" for="configText">Edit configuration file</label>
+          <textarea id="configText" class="config-editor" spellcheck="false" aria-label="Non-secret Recap TOML configuration"></textarea>
+        </div>
+        <div class="settings-actions">
+          <button id="discoverRepos" class="button button-quiet" type="button">Find repositories</button>
+          <button id="saveConfig" class="button button-primary" type="button">Save settings</button>
+        </div>
+        <div id="reposList" class="repos-list" aria-live="polite"></div>
+      </div>
+    </details>
+    <footer class="page-footer">Recap runs locally. Reports are kept in this browser session only.</footer>
+  </main>
+
+  <script src="/assets/app.js" defer></script>
+</body>
+</html>

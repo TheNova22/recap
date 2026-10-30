@@ -1,0 +1,22 @@
+# Copy this to the path shown by `recap config path`, or run `recap config init`.
+# Credentials are read from environment variables, not from this file.
+repo_roots = ["~/work"]
+repo_excludes = ["node_modules", ".venv", "venv", "vendor", "build"]
+agent_sources = ["codex", "claude", "cursor"]
+timezone = "local"
+jira_base_url = ""
+jira_recent_days = 30
+issue_provider = "jira"
+ai_provider = "openai_responses"
+ai_base_url = "https://api.openai.com/v1"
+# Replace with a model ID supported by the configured endpoint.
+ai_model = "your-model-id"
+ai_max_output_tokens = 4096
+comment_template = "concise"
+
+[templates]
+concise = "{date} update for {issue_key} — {issue_title}\n\n{items}\n\n{links}"
+detailed = "Work completed on {date} for {issue_key} — {issue_title}:\n\n{items}\n\nReferences:\n{links}"
+
+[custom]
+# Add non-secret custom values for your templates here.
